@@ -21,14 +21,15 @@ class QuoteScreen extends StatefulWidget {
 }
 
 class _QuoteScreenState extends State<QuoteScreen> {
-  String quote = "Drücken Sie den Knopf, um ein Zitat zu laden.";
+  String quote = "Wählen Sie eine Kategorie und drücken Sie den Knopf, um ein Zitat zu laden.";
   String author = "";
-  String category = "";
+  String category = "inspiration";
+  List<String> categories = ["inspiration", "love", "success", "wisdom", "happiness"];
 
   Future<void> fetchQuote() async {
     final response = await http.get(
-      Uri.parse('https://api.api-ninjas.com/v1/quotes'),
-      headers: {'X-Api-Key': '6Vwbo7vAZLInrUZVCLU0Wg==6sgPzHBdbtWdCzd3', 'category': 'happiness'},
+      Uri.parse('https://api.api-ninjas.com/v1/quotes?category=$category'),
+      headers: {'X-Api-Key': '6Vwbo7vAZLInrUZVCLU0Wg==6sgPzHBdbtWdCzd3'},
     );
 
     if (response.statusCode == 200) {
@@ -38,20 +39,17 @@ class _QuoteScreenState extends State<QuoteScreen> {
         setState(() {
           quote = quoteData['quote'];
           author = quoteData['author'];
-          category = quoteData['category'];
         });
       } else {
         setState(() {
-          quote = "Kein Zitat gefunden.";
+          quote = "Kein Zitat für diese Kategorie gefunden.";
           author = "";
-          category = "";
         });
       }
     } else {
       setState(() {
         quote = "Fehler beim Laden des Zitats.";
         author = "";
-        category = "";
       });
     }
   }
@@ -66,6 +64,21 @@ class _QuoteScreenState extends State<QuoteScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              DropdownButton<String>(
+                value: category,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    category = newValue!;
+                  });
+                },
+                items: categories.map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value.capitalize()),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 20),
               Text(
                 quote,
                 textAlign: TextAlign.center,
@@ -87,5 +100,11 @@ class _QuoteScreenState extends State<QuoteScreen> {
         ),
       ),
     );
+  }
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${this.substring(1)}";
   }
 }
